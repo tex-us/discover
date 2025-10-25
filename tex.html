@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TEX Exchange</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #fff;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 50px;
+      background-color: #1a1a1a;
+      border-bottom: 1px solid #333;
+    }
+    header .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ff4d4d;
+    }
+    header nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 20px;
+    }
+    header nav a:hover {
+      color: #ff4d4d;
+    }
+    main {
+      padding: 40px 50px;
+    }
+    .market-table h1 {
+      color: #ff4d4d;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #1e1e1e;
+    }
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+    th {
+      color: #ff4d4d;
+    }
+    td {
+      color: #fff;
+    }
+    tr:hover {
+      background-color: #2a2a2a;
+    }
+    .trade-button {
+      padding: 8px 12px;
+      background-color: #ff4d4d;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .trade-button:hover {
+      background-color: #ff1a1a;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      border-top: 1px solid #333;
+      margin-top: 50px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">TEX</div>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Markets</a>
+      <a href="#">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="market-table">
+      <h1>Discover</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Price (USD)</th>
+            <th>24h Change</th>
+            <th>Market Cap</th>
+            <th>Trade</th>
+          </tr>
+        </thead>
+        <tbody id="token-body">
+          <!-- Will be populated by JS -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 TEX Exchange
+  </footer>
+
+  <script>
+    const tokenBody = document.getElementById('token-body');
+
+    // Token data config
+    const token = {
+      symbol: "$JAVA",
+      link: "https://pump.fun/coin/6JG6VRMsfucQVwVWQtuaN3euxPtHRY6xf6CJvYvzfHs6"
+    };
+
+    async function fetchTokenData() {
+      try {
+        // Example: Use the API from Moralis Web3 API for Pump.fun API tokens
+        // (You’ll need your API key and correct endpoint depending on token address)
+        // See docs: https://docs.moralis.com/web3-data-api/solana/tutorials/introduction-to-pump-fun-api-support-in-moralis :contentReference[oaicite:3]{index=3}
+
+        const apiUrl = `https://solana-api.moralis.io/token/price?chain=solana&address=<TOKEN_MINT_ADDRESS>`;
+        const response = await fetch(apiUrl, {
+          headers: {
+            "X-API-Key": "<YOUR_API_KEY>"
+          }
+        });
+        const data = await response.json();
+        // Example structure assumed:
+        // { price: { usd: 0.00 }, price_change_24h: +X, market_cap: 1234567 }
+
+        const priceUsd = data.price.usd.toFixed(6);
+        const change24h = (data.price_change_24h).toFixed(2) + "%";
+        const marketCap = data.market_cap.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits:0 });
+
+        renderToken({ symbol: token.symbol, priceUsd, change24h, marketCap, link: token.link });
+
+      } catch (err) {
+        console.error("Error fetching token data:", err);
+        // Fallback: display placeholder
+        renderToken({ symbol: token.symbol, priceUsd: "-", change24h: "-", marketCap: "-", link: token.link });
+      }
+    }
+
+    function renderToken(obj) {
+      const row = document.createElement('tr');
+      const changeColor = obj.change24h.startsWith("+") ? "#00ff00" : (obj.change24h.startsWith("-") ? "#ff4d4d" : "#fff");
+      row.innerHTML = `
+        <td>${obj.symbol}</td>
+        <td>${obj.priceUsd}</td>
+        <td style="color: ${changeColor}">${obj.change24h}</td>
+        <td>${obj.marketCap}</td>
+        <td><a href="${obj.link}" target="_blank"><button class="trade-button">Trade</button></a></td>
+      `;
+      tokenBody.appendChild(row);
+    }
+
+    // On load
+    fetchTokenData();
+  </script>
+</body>
+</html>
