@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TEX – Discover</title>
+<title>TEX</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   body{margin:0;font-family:'Inter',sans-serif;background:#121212;color:#fff}
@@ -30,7 +30,7 @@
 </style>
 </head>
 <body>
-<header><div class="logo">TEX – Discover</div></header>
+<header><div class="logo">TEX</div></header>
 
 <table>
 <thead>
@@ -94,16 +94,16 @@ async function fetchSolUsd(){
 async function fetchSpecPrice(){
   try{
     const solUsd = await fetchSolUsd();
-    // Get Jupiter quote for 1 SPEC -> SOL
-    const quoteR = await fetch(`https://quote-api.jup.ag/v1/quote?inputMint=${TOKEN.mint}&outputMint=${SOL_MINT}&amount=1000000`);
+    // Use larger amount to get valid quote
+    const quoteAmount = 10000 * 1e6; // 10,000 SPEC in smallest units
+    const quoteR = await fetch(`https://quote-api.jup.ag/v1/quote?inputMint=${TOKEN.mint}&outputMint=${SOL_MINT}&amount=${quoteAmount}`);
     const quoteJ = await quoteR.json();
-    if(!quoteJ.data || !quoteJ.data[0]) return null;
+    if(!quoteJ.data || !quoteJ.data[0]) throw "No quote returned";
     const solOut = quoteJ.data[0].outAmount / 1e9; // SOL
-    const priceUSD = solOut * solUsd;
+    const priceUSD = (solOut / 10000) * solUsd; // per 1 SPEC
     const marketCap = priceUSD * TOKEN.totalSupply;
     priceEl.textContent = `$${priceUSD.toFixed(6)}`;
-    // Placeholder 24h change, since Jupiter does not provide it for new token
-    const change24h = 0; 
+    const change24h = 0; // placeholder for new token
     changeEl.textContent = `${change24h.toFixed(2)}%`;
     changeEl.className = change24h>=0?"change-pos":"change-neg";
     mcapEl.textContent = `$${(marketCap/1e6).toFixed(2)}M`;
