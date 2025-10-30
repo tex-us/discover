@@ -2,157 +2,165 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TEX - Discover</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #121212;
-      color: #f2f2f2;
       margin: 0;
-      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #fff;
     }
     header {
-      background-color: #1a1a1a;
-      border-bottom: 1px solid #333;
-      padding: 20px;
-      text-align: center;
-      font-size: 2rem;
-      color: #ff3b3b;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-    main {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
-    }
-    .token-card {
-      background-color: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 15px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: 0.3s;
+      padding: 15px 50px;
+      background-color: #1a1a1a;
+      border-bottom: 1px solid #333;
     }
-    .token-card:hover {
-      border-color: #ff3b3b;
-      background-color: #252525;
+    header .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ff4d4d;
     }
-    .token-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+    header nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 20px;
     }
-    .token-logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(45deg, #ff3b3b, #b30000);
+    header nav a:hover {
+      color: #ff4d4d;
     }
-    .token-name {
-      font-size: 1.2rem;
-      font-weight: 600;
+    main {
+      padding: 40px 50px;
     }
-    .token-symbol {
-      font-size: 0.9rem;
-      color: #999;
+    .market-table h1 {
+      color: #ff4d4d;
+      margin-bottom: 20px;
     }
-    .token-stats {
-      text-align: right;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #1e1e1e;
     }
-    .price {
-      font-weight: 600;
-      font-size: 1.1rem;
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #333;
     }
-    .change-pos {
-      color: #00ff7f;
+    th {
+      color: #ff4d4d;
     }
-    .change-neg {
-      color: #ff3b3b;
+    td {
+      color: #fff;
     }
-    .mcap {
-      font-size: 0.9rem;
-      color: #aaa;
+    tr:hover {
+      background-color: #2a2a2a;
+    }
+    .trade-button {
+      padding: 8px 12px;
+      background-color: #ff4d4d;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .trade-button:hover {
+      background-color: #ff1a1a;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      border-top: 1px solid #333;
+      margin-top: 50px;
+      color: #888;
     }
   </style>
 </head>
 <body>
-  <header>TEX</header>
+  <header>
+    <div class="logo">TEX</div>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Discover</a>
+      <a href="#">About</a>
+    </nav>
+  </header>
+
   <main>
-    <div class="token-card">
-      <div class="token-info">
-        <div class="token-logo"></div>
-        <div>
-          <div class="token-name">Speculation</div>
-          <div class="token-symbol">$SPEC</div>
-        </div>
-      </div>
-      <div class="token-stats">
-        <div class="price" id="price">Loading...</div>
-        <div class="change-pos" id="change">0.00%</div>
-        <div class="mcap" id="mcap">Loading...</div>
-      </div>
-    </div>
+    <section class="market-table">
+      <h1>Discover</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Price (USD)</th>
+            <th>24h Change</th>
+            <th>Market Cap</th>
+            <th>Trade</th>
+          </tr>
+        </thead>
+        <tbody id="token-body">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </section>
   </main>
 
+  <footer>
+    &copy; 2025 TEX Exchange
+  </footer>
+
   <script>
-    const TOKEN = {
-      mint: "28epFLHUSyU9y5tYdXmzT2YK3ozpFkAZvUqC9f9Naray",
-      decimals: 6,
-      totalSupply: 1_000_000_000,
-    };
+    const tokenBody = document.getElementById('token-body');
+
+    const SPEC_MINT = "28epFLHUSyU9y5tYdXmzT2YK3ozpFkAZvUqC9f9Naray";
     const SOL_MINT = "So11111111111111111111111111111111111111112";
 
-    const priceEl = document.getElementById("price");
-    const changeEl = document.getElementById("change");
-    const mcapEl = document.getElementById("mcap");
-
-    async function fetchSolUsd(){
-      try{
-        const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
-        const j = await r.json();
-        return j.solana.usd;
-      } catch(e){
-        console.error("Sol USD fetch error:", e);
-        return 0;
-      }
-    }
-
-    async function fetchSpecPrice(){
+    async function fetchPrice(mint) {
       try {
-        const solUsd = await fetchSolUsd();
-        const amountRaw = 10000 * Math.pow(10, TOKEN.decimals);
-        const url = `https://lite-api.jup.ag/swap/v1/quote?inputMint=${TOKEN.mint}&outputMint=${SOL_MINT}&amount=${amountRaw}&slippageBps=100`;
-
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error("Quote API not ok: " + resp.status);
-        const j = await resp.json();
-
-        if (!j.data || j.data.length === 0) throw new Error("No quote data returned");
-
-        const outSolLamports = BigInt(j.data[0].outAmount);
-        const solAmount = Number(outSolLamports) / 1e9;
-        const priceUsd = (solAmount / 10000) * solUsd;
-        const marketCapUsd = priceUsd * TOKEN.totalSupply;
-
-        priceEl.textContent = `$${priceUsd.toFixed(6)}`;
-        changeEl.textContent = "0.00%";
-        changeEl.className = "change-pos";
-        mcapEl.textContent = `$${(marketCapUsd / 1e6).toFixed(2)}M`;
-      } catch(e) {
-        console.error("SPEC price fetch error:", e);
-        priceEl.textContent = "N/A";
-        changeEl.textContent = "-";
-        mcapEl.textContent = "N/A";
+        const res = await fetch(`https://lite-api.jup.ag/price/v3?ids=${mint}`);
+        if (!res.ok) throw new Error("API error");
+        const json = await res.json();
+        const data = json.data[mint];
+        if (!data || !data.price) throw new Error("No price found");
+        return data.price;
+      } catch (e) {
+        console.error(`Price fetch failed for ${mint}:`, e);
+        return null;
       }
     }
 
-    fetchSpecPrice();
-    setInterval(fetchSpecPrice, 60000);
+    async function loadToken() {
+      try {
+        const [specSol, solUsd] = await Promise.all([
+          fetchPrice(SPEC_MINT),
+          fetchPrice(SOL_MINT)
+        ]);
+
+        let priceUsd = "N/A";
+        if (specSol && solUsd) priceUsd = (specSol * solUsd).toFixed(6);
+
+        const marketCap = priceUsd === "N/A" ? "N/A" : `$${(priceUsd * 1_000_000_000).toLocaleString()}`; // assuming 1B supply
+        const change24h = "N/A";
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>$SPEC</td>
+          <td>${priceUsd === "N/A" ? "N/A" : `$${priceUsd}`}</td>
+          <td>${change24h}</td>
+          <td>${marketCap}</td>
+          <td><a href="https://raydium.io/launchpad/token/?mint=${SPEC_MINT}" target="_blank"><button class="trade-button">Trade</button></a></td>
+        `;
+        tokenBody.appendChild(row);
+      } catch (e) {
+        console.error("Load token failed:", e);
+      }
+    }
+
+    loadToken();
   </script>
 </body>
 </html>
