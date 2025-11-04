@@ -326,12 +326,6 @@
         symbol: "TRUMP", 
         coinId: "official-trump",
         mint: "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN" 
-      },
-      { 
-        name: "MELANIA", 
-        symbol: "MELANIA", 
-        coinId: "melania-meme",
-        mint: "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P" 
       }
     ];
 
@@ -372,15 +366,15 @@
       const tokensWithCoinIds = TOKENS.filter(token => token.coinId !== null);
       
       // Split into smaller batches (5 tokens per batch)
-      const batches = chunkArray(tokensWithCoinIds, 5);
+      const batches = chunkArray(tokensWithCoinIds, 8);
       
       for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
         await fetchBatchPrices(batch);
         
-        // Add delay between batches (1.5 seconds)
+
         if (i < batches.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 15000));
+          await new Promise(resolve => setTimeout(resolve, 5000));
         }
       }
       
