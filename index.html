@@ -256,30 +256,6 @@
         mint: "So11111111111111111111111111111111111111112" 
       },
       { 
-        name: "Polygon", 
-        symbol: "POL", 
-        coinId: "polygon-ecosystem-token", 
-        mint: "Gz7VkD4MacbEB6yC5XD3HcumEiYx2EtDYYrfikGsvopG" 
-      },
-      { 
-        name: "Sui", 
-        symbol: "SUI", 
-        coinId: "sui", 
-        mint: "756wWVqA9tpZpxqNxCiJYSCGWi3gD2NXfwKHh4YsYJg9" 
-      },
-      { 
-        name: "Ripple", 
-        symbol: "XRP", 
-        coinId: "ripple", 
-        mint: "2jcHBYd9T2Mc9nhvFEBCDuBN1XjbbQUVow67WGWhv6zT" 
-      },
-      { 
-        name: "Dogecoin", 
-        symbol: "DOGE", 
-        coinId: "dogecoin", 
-        mint: "BFARNBVWNfZfh3JQJLhogQJ9bkop4Y8LaDHeSxDDk5nn" 
-      },
-      { 
         name: "Tron", 
         symbol: "TRX", 
         coinId: "tron", 
@@ -310,19 +286,19 @@
         mint: "A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS" 
       },
       { 
-        name: "HYPE", 
+        name: "Hyperliquid", 
         symbol: "HYPE", 
         coinId: "hyperliquid",
         mint: "98sMhvDwXj1RQi5c5Mndm3vPe9cBqPrbLaufMXFNMh5g" 
       },
       { 
-        name: "WLFI", 
+        name: "World Liberty Financial Token", 
         symbol: "WLFI", 
         coinId: "world-liberty-financial",
         mint: "WLFinEv6ypjkczcS83FZqFpgFZYwQXutRbxGe7oC16g" 
       },
       { 
-        name: "TRUMP", 
+        name: "Official Trump", 
         symbol: "TRUMP", 
         coinId: "official-trump",
         mint: "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN" 
@@ -365,8 +341,8 @@
       // Only fetch tokens that have CoinGecko IDs
       const tokensWithCoinIds = TOKENS.filter(token => token.coinId !== null);
       
-      // Split into smaller batches (5 tokens per batch)
-      const batches = chunkArray(tokensWithCoinIds, 8);
+      // Split into smaller batches (6 tokens per batch)
+      const batches = chunkArray(tokensWithCoinIds, 6);
       
       for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
