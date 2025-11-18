@@ -8,8 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
   
   <!-- Solana Web3 -->
-  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
-  <script src="https://unpkg.com/@orca-so/sdk@1.7.1/dist/index.iife.js"></script>
+  <script src="https://unpkg.com/@solana/web3.js@1.78.0/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@orca-so/sdk@1.7.1/dist/index.browser.min.js"></script>
   
   <style>
     :root {
@@ -246,12 +246,14 @@
       color: #ff4d4d;
       margin-top: 10px;
       text-align: center;
+      font-size: 0.9rem;
     }
     
     .success-message {
       color: #4CAF50;
       margin-top: 10px;
       text-align: center;
+      font-size: 0.9rem;
     }
     
     .wallet-status {
@@ -275,6 +277,21 @@
     
     .connect-wallet:hover {
       background-color: #45a049;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -347,7 +364,9 @@
           </div>
         </div>
         
-        <button id="swap-button" class="swap-button" onclick="executeSwap()" disabled>Swap</button>
+        <button id="swap-button" class="swap-button" onclick="executeSwap()" disabled>
+          <span id="swap-button-text">Swap</span>
+        </button>
         
         <div id="error-message" class="error-message"></div>
         <div id="success-message" class="success-message"></div>
@@ -458,10 +477,10 @@
     const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3/simple/price';
     
     // Orca SDK and Solana connection
-    let orca;
-    let connection;
-    let currentOutputMint;
-    let currentTokenSymbol;
+    let orca = null;
+    let connection = null;
+    let currentOutputMint = null;
+    let currentTokenSymbol = null;
     let wallet = null;
     
     // Initialize Orca SDK
@@ -475,24 +494,27 @@
           "confirmed"
         );
         
-        // Initialize Orca SDK
+        // Initialize Orca SDK - using the correct initialization method
         orca = Orca.SDK.load({ connection });
-        console.log("Orca SDK initialized successfully");
+        console.log("Orca SDK initialized successfully:", orca);
         
         // Check for existing wallet connection
         checkWalletConnection();
         
       } catch (error) {
         console.error("Failed to initialize Orca SDK:", error);
-        showError("Failed to initialize trading functionality");
+        showError("Failed to initialize trading functionality. Please refresh the page.");
       }
     }
     
     // Check if wallet is already connected
     function checkWalletConnection() {
-      if (window.solana && window.solana.isPhantom && window.solana.isConnected) {
+      if (window.solana && window.solana.isPhantom) {
         wallet = window.solana;
-        updateWalletStatus();
+        if (wallet.isConnected) {
+          updateWalletStatus();
+          document.getElementById('input-amount').disabled = false;
+        }
       }
     }
     
@@ -501,11 +523,13 @@
       try {
         if (!window.solana || !window.solana.isPhantom) {
           showError("Please install Phantom wallet to trade");
+          window.open('https://phantom.app/', '_blank');
           return;
         }
         
         wallet = window.solana;
-        await wallet.connect();
+        const response = await wallet.connect();
+        console.log("Wallet connected:", response);
         updateWalletStatus();
         showSuccess("Wallet connected successfully!");
         
@@ -514,7 +538,7 @@
         
       } catch (error) {
         console.error("Failed to connect wallet:", error);
-        showError("Failed to connect wallet");
+        showError("Failed to connect wallet. Please try again.");
       }
     }
     
@@ -677,6 +701,11 @@
     
     // Open Orca trade modal
     function openOrcaModal(outputMint, tokenSymbol, tokenName) {
+      if (!orca) {
+        showError("Trading functionality is still initializing. Please wait...");
+        return;
+      }
+      
       currentOutputMint = outputMint;
       currentTokenSymbol = tokenSymbol;
       
@@ -710,6 +739,11 @@
         return;
       }
       
+      if (!orca) {
+        showError("Trading functionality is not ready. Please try again.");
+        return;
+      }
+      
       try {
         console.log("Calculating swap for:", inputAmount, "SOL to", currentTokenSymbol);
         
@@ -717,15 +751,14 @@
         const solMint = new solanaWeb3.PublicKey("So11111111111111111111111111111111111111112");
         const outputMint = new solanaWeb3.PublicKey(currentOutputMint);
         
-        // Get Orca instance
-        const orcaInstance = await orca;
-        
         // Get token objects
-        const solToken = orcaInstance.getToken(solMint);
-        const outputToken = orcaInstance.getToken(outputMint);
+        const solToken = orca.getToken(solMint);
+        const outputToken = orca.getToken(outputMint);
+        
+        console.log("Tokens loaded:", { solToken, outputToken });
         
         // Get quote for swap
-        const quote = await orcaInstance.getQuote(
+        const quote = await orca.getQuote(
           solToken,
           outputToken,
           inputAmount
@@ -744,7 +777,7 @@
         
       } catch (error) {
         console.error("Error calculating swap:", error);
-        showError(`Failed to calculate swap: ${error.message}`);
+        showError(`Failed to calculate swap. The token pair may not be supported.`);
         document.getElementById('swap-button').disabled = true;
       }
     }
@@ -763,27 +796,31 @@
         return;
       }
       
+      if (!orca) {
+        showError("Trading functionality is not ready. Please try again.");
+        return;
+      }
+      
       try {
+        setSwapButtonLoading(true);
+        
         // Get token mints
         const solMint = new solanaWeb3.PublicKey("So11111111111111111111111111111111111111112");
         const outputMint = new solanaWeb3.PublicKey(currentOutputMint);
         
-        // Get Orca instance
-        const orcaInstance = await orca;
-        
         // Get token objects
-        const solToken = orcaInstance.getToken(solMint);
-        const outputToken = orcaInstance.getToken(outputMint);
+        const solToken = orca.getToken(solMint);
+        const outputToken = orca.getToken(outputMint);
         
         // Get quote for swap
-        const quote = await orcaInstance.getQuote(
+        const quote = await orca.getQuote(
           solToken,
           outputToken,
           inputAmount
         );
         
         // Execute swap
-        const swapPayload = await orcaInstance.swap({
+        const swapPayload = await orca.swap({
           quote,
           userPublicKey: wallet.publicKey,
           slippage: 1.0 // 1% slippage
@@ -807,14 +844,29 @@
         }
         
         showSuccess(`Swap completed! Transaction: ${signature}`);
+        setSwapButtonLoading(false);
         
       } catch (error) {
         console.error("Error executing swap:", error);
         showError(`Failed to execute swap: ${error.message}`);
+        setSwapButtonLoading(false);
       }
     }
     
     // Helper functions for UI
+    function setSwapButtonLoading(loading) {
+      const button = document.getElementById('swap-button');
+      const buttonText = document.getElementById('swap-button-text');
+      
+      if (loading) {
+        button.disabled = true;
+        buttonText.innerHTML = '<span class="loading-spinner"></span>Swapping...';
+      } else {
+        button.disabled = false;
+        buttonText.textContent = 'Swap';
+      }
+    }
+    
     function clearSwapInfo() {
       document.getElementById('estimated-output').textContent = '-';
       document.getElementById('price-impact').textContent = '-';
@@ -848,10 +900,12 @@
     document.addEventListener('DOMContentLoaded', async function() {
       initializeTable();
       startPriceUpdates();
-      await initializeOrca();
       
       // Add event listener for connect wallet button
       document.getElementById('connect-wallet').addEventListener('click', connectWallet);
+      
+      // Initialize Orca SDK after a short delay to ensure everything is loaded
+      setTimeout(initializeOrca, 1000);
     });
   </script>
 </body>
