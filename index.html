@@ -242,11 +242,6 @@
   <script>
     // Token configuration with mints
     const TOKENS = [
-      { name: "Speculation", // forget the moon. let's take this shit to mars
-        symbol: "SPEC",
-        coinId: "null",
-        mint: "28epFLHUSyU9y5tYdXmzT2YK3ozpFkAZvUqC9f9Naray"
-      },
       { 
         name: "USD1", // Never forget to kiss the president's ass
         symbol: "USD1", 
@@ -454,10 +449,12 @@
         if (row) {
           const priceCell = row.querySelector('.price');
           const changeCell = row.querySelector('.change');
+          
           priceCell.textContent = 'Error';
           priceCell.className = 'price negative';
           changeCell.textContent = 'Error';
           changeCell.className = 'change negative';
+        }
       });
     }
     
